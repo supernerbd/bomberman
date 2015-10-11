@@ -154,15 +154,11 @@ game.main = (function(){
 	};
 	
 	function checkCollision(nr,oPl){
-		/*
-		if(circleHitLeftRight(player[nr])){
-			console.log(player[nr].x + " " + oPl.x);
-			player[nr].x-=PLAYER.SPEED;//=oPl.x;
-		}
-		if(circleHitTopBottom(player[nr])){
-			console.log("collision top bottom");
-			player[nr].y-1;//=oPl.y;
-		}*/
+		
+		playerHitLeft(player[nr]);
+		playerHitRight(player[nr]);
+		playerHitTop(player[nr]);
+		playerHitBottom(player[nr]);
 	}
 	
 	function Player(x,y,color,up,right,down,left,bomb){ //Keys only if changeable keys is possible
@@ -239,15 +235,26 @@ game.main = (function(){
 		ctx.restore();
 	};
 	
-	function circleHitLeftRight(c){
-		if(c.x<=PLAYER.RADIUS||c.x>=CANVAS_WIDTH-PLAYER.RADIUS){
-			return true;
+	function playerHitLeft(c){
+		if(c.x<=PLAYER.RADIUS){
+			c.x=PLAYER.RADIUS;
+		}
+	};
+	function playerHitRight(c){
+		if(c.x>=CANVAS_WIDTH-PLAYER.RADIUS){
+			c.x=CANVAS_WIDTH-PLAYER.RADIUS;
 		}
 	};
 	
-	function circleHitTopBottom(c){
-		if(c.y<=PLAYER.RADIUS||c.y>=CANVAS_HEIGHT-PLAYER.RADIUS){
-			return true;
+	function playerHitTop(c){
+		if(c.y<=PLAYER.RADIUS){
+			c.y=PLAYER.RADIUS;
+		}
+	};
+	
+	function playerHitBottom(c){
+		if(c.y>=CANVAS_HEIGHT-PLAYER.RADIUS){
+			c.y=CANVAS_HEIGHT-PLAYER.RADIUS;
 		}
 	};
 	
