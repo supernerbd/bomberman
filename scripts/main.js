@@ -25,10 +25,16 @@ game.main = (function(){
 		var lastTime = 0;
 		var debug = true;
 		var level = [];
+		var player = [];
 		//BOX object
 		var BOX = Object.freeze({
 			HEIGHT: 50,
 			WIDTH: 50,
+		});
+		//PLAYER Object
+		var PLAYER = Object.freeze({
+			RADIUS: 20,
+			SPEED: 80,
 		});
 	//methods
 	function init(){ //setup canvas, set canvas into center of screen, setup mouse controls, start animation loop
@@ -66,6 +72,10 @@ game.main = (function(){
 	 	var dt = calculateDeltaTime();
 		
 		// 4) UPDATE
+		//Player movement
+		movePlayer(dt);
+		//check collision
+		//checkCollision();
 		
 		// 5) DRAW	
 		// i) draw background
@@ -97,6 +107,16 @@ game.main = (function(){
 				}
 			}
 		}
+		//drawPlayer
+		for (var i=0; i<=1; i++){ //bad code but length didn't worked..
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(player[i].x, player[i].y, PLAYER.RADIUS, 0, Math.PI*2, false);
+			ctx.closePath();
+			ctx.fillStyle=player[i].color;
+			ctx.fill();
+			ctx.restore();
+		}
 	};
 	
 	function setupLevel(){ //setup level in level Array
@@ -108,6 +128,53 @@ game.main = (function(){
 				level.push(box);
 			}
 		}
+		// add player
+		var pl1=new Player(25,270,"red","KEY_UP","KEY_RIGHT","KEY_DOWN","KEY_LEFT","KEY_M");
+		var pl2=new Player(1025,270,"blue","KEY_W","KEY_D","KEY_S","KEY_A","KEY_SHIFT");
+		player[0]=pl1;
+		player[1]=pl2;
+	};
+	
+	function movePlayer(dt){
+		//Maybe bomb only on keyup...
+		//changable keys: run through array and check for true.
+		//myKeys.keydown[myKeys.KEYBOARD.KEY_UP] this.x+=this.xSpeed*this.speed*dt;
+		var oPl0=player[0]; //original player 0 object
+		var oPl1= player[1]; //original player 1 object
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_M]){console.log("player[0] bomb")}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_SHIFT]){console.log("player[1] SHIFT")}
+	};
+	
+	function checkCollision(nr,oPl){
+		/*
+		if(circleHitLeftRight(player[nr])){
+			console.log(player[nr].x + " " + oPl.x);
+			player[nr].x-=PLAYER.SPEED;//=oPl.x;
+		}
+		if(circleHitTopBottom(player[nr])){
+			console.log("collision top bottom");
+			player[nr].y-1;//=oPl.y;
+		}*/
+	}
+	
+	function Player(x,y,color,up,right,down,left,bomb){ //Keys only if changeable keys is possible
+		this.x=x;
+		this.y=y;
+		this.color=color;
+		this.up=up;
+		this.right=right;
+		this.down=down;
+		this.left=left;
+		this.bomb=bomb;
+		return this;
 	};
 	
 	function Box(x,y,fixed){ //fixed is boolean
@@ -170,6 +237,18 @@ game.main = (function(){
 		ctx.textBaseline="middle";
 		fillText(ctx,"... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt courier", "white")
 		ctx.restore();
+	};
+	
+	function circleHitLeftRight(c){
+		if(c.x<=PLAYER.RADIUS||c.x>=CANVAS_WIDTH-PLAYER.RADIUS){
+			return true;
+		}
+	};
+	
+	function circleHitTopBottom(c){
+		if(c.y<=PLAYER.RADIUS||c.y>=CANVAS_HEIGHT-PLAYER.RADIUS){
+			return true;
+		}
 	};
 	
 	//return (or make public)

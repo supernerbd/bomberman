@@ -11,7 +11,12 @@ myKeys.KEYBOARD = Object.freeze({
 	"KEY_RIGHT": 39, 
 	"KEY_DOWN": 40,
 	"KEY_SPACE": 32,
-	"KEY_SHIFT": 16
+	"KEY_SHIFT": 16,
+	"KEY_M": 77,
+	"KEY_W": 87,
+	"KEY_D": 68,
+	"KEY_S": 83,
+	"KEY_A": 65,
 });
 
 // myKeys.keydown array to keep track of which keys are down
@@ -23,12 +28,12 @@ myKeys.keydown = [];
 
 // event listeners
 window.addEventListener("keydown",function(e){
-	console.log("keydown=" + e.keyCode);
+	//console.log("keydown=" + e.keyCode);
 	myKeys.keydown[e.keyCode] = true;
 });
 
 window.addEventListener("keyup",function(e){
-	console.log("keyup=" + e.keyCode);
+	//console.log("keyup=" + e.keyCode);
 	myKeys.keydown[e.keyCode] = false;
 	
 	/*	// pausing and resuming
