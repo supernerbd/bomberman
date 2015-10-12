@@ -160,9 +160,14 @@ game.main = (function(){
 	
 	function checkCollision(nr){
 		for (var i=0; i<level.length; i++){
-			if (player[nr].x < level[i].x + BOX.WIDTH  && player[nr].x + PLAYER.RADIUS  > level[i].x &&
+			/*//Rectangle vs rectangle collision detection
+			if (player[nr].x < level[i].x + BOX.WIDTH  && player[nr].x + PLAYER.RADIUS  > level[i].x && 
 				player[nr].y < level[i].y + BOX.HEIGHT && player[nr].y + PLAYER.RADIUS > level[i].y) {
 				// The objects are touching
+				player[nr].x=oldPlayer[nr].x;
+				player[nr].y=oldPlayer[nr].y;
+			}*/
+			if(RectCircleColliding(player[nr],level[i])){
 				player[nr].x=oldPlayer[nr].x;
 				player[nr].y=oldPlayer[nr].y;
 			}
@@ -274,6 +279,24 @@ game.main = (function(){
 		if(c.y>=CANVAS_HEIGHT-PLAYER.RADIUS){
 			c.y=CANVAS_HEIGHT-PLAYER.RADIUS;
 		}
+	};
+	
+	// return true if the rectangle and circle are colliding
+	// this function is from user marcE from stackoverflow.com: http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle-in-html5-canvas
+	// I altered this code to fit in my needs.
+	function RectCircleColliding(circle,rect){
+		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
+		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
+
+		if (distX > (BOX.WIDTH/2 + PLAYER.RADIUS)) { return false; }
+		if (distY > (BOX.HEIGHT/2 + PLAYER.RADIUS)) { return false; }
+
+		if (distX <= (BOX.WIDTH/2)) { return true; } 
+		if (distY <= (BOX.HEIGHT/2)) { return true; }
+
+		var dx=distX-BOX.WIDTH/2;
+		var dy=distY-BOX.HEIGHT/2;
+		return (dx*dx+dy*dy<=(PLAYER.RADIUS*PLAYER.RADIUS));
 	};
 	
 	//return (or make public)
