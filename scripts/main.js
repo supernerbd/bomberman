@@ -26,6 +26,7 @@ game.main = (function(){
 		var debug = true;
 		var level = [];
 		var player = [];
+		var oldPlayer=[];
 		//BOX object
 		var BOX = Object.freeze({
 			HEIGHT: 50,
@@ -133,28 +134,39 @@ game.main = (function(){
 		var pl2=new Player(1025,270,"blue","KEY_W","KEY_D","KEY_S","KEY_A","KEY_SHIFT");
 		player[0]=pl1;
 		player[1]=pl2;
+		oldPlayer[0]=new OldPlayer(player[0].x,player[0].y);
+		oldPlayer[1]=new OldPlayer(player[1].x,player[1].y);
 	};
 	
 	function movePlayer(dt){
 		//Maybe bomb only on keyup...
 		//changable keys: run through array and check for true.
 		//myKeys.keydown[myKeys.KEYBOARD.KEY_UP] this.x+=this.xSpeed*this.speed*dt;
-		var oPl0=player[0]; //original player 0 object
-		var oPl1= player[1]; //original player 1 object
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=PLAYER.SPEED*dt; checkCollision(0,oPl0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=PLAYER.SPEED*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=PLAYER.SPEED*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=PLAYER.SPEED*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=PLAYER.SPEED*dt; checkCollision(0);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_M]){console.log("player[0] bomb")}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=PLAYER.SPEED*dt; checkCollision(1,oPl1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=PLAYER.SPEED*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=PLAYER.SPEED*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=PLAYER.SPEED*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=PLAYER.SPEED*dt; checkCollision(1);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_SHIFT]){console.log("player[1] SHIFT")}
+		oldPlayer[0].x=player[0].x;
+		oldPlayer[0].y=player[0].y;
+		oldPlayer[1].x=player[1].x;
+		oldPlayer[1].y=player[1].y;
 	};
 	
-	function checkCollision(nr,oPl){
-		
+	function checkCollision(nr){
+		for (var i=0; i<level.length; i++){
+			if (player[nr].x < level[i].x + BOX.WIDTH  && player[nr].x + PLAYER.RADIUS  > level[i].x &&
+				player[nr].y < level[i].y + BOX.HEIGHT && player[nr].y + PLAYER.RADIUS > level[i].y) {
+				// The objects are touching
+				player[nr].x=oldPlayer[nr].x;
+				player[nr].y=oldPlayer[nr].y;
+			}
+		}
 		playerHitLeft(player[nr]);
 		playerHitRight(player[nr]);
 		playerHitTop(player[nr]);
@@ -170,6 +182,12 @@ game.main = (function(){
 		this.down=down;
 		this.left=left;
 		this.bomb=bomb;
+		return this;
+	};
+	
+	function OldPlayer(x,y){ //Keys only if changeable keys is possible
+		this.x=x;
+		this.y=y;
 		return this;
 	};
 	
