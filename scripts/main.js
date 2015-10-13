@@ -7,7 +7,7 @@ main.js
 // else create a new empty object literal
 var game = game || {};
 
-// first step: set up canvas, 2. establish animation loop, 3. draw boxes, 4. draw player, 5. check collision
+// first step: set up canvas, 2. establish animation loop, 3. draw boxes, 4. draw player, 5. check collision, 6. destructable boxes, 7. bombs, 8. exploding and destruction
 // !! this. can be used for functions but not for vars!!
 game.main = (function(){
 	//properties
