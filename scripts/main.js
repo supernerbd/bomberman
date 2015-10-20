@@ -10,8 +10,8 @@ var game = game || {};
 // first step: set up canvas, 2. establish animation loop, 3. draw boxes, 4. draw player, 5. check collision, 6. destructable boxes, 7. bombs, 8. exploding and destruction
 // maybe just using circles for exploding? Makes some things easier..
 // !! this. can be used for functions but not for vars!!
-// rework the code (make it nice!), add hud and menus, add power ups, add graphics, add sound
-//put utilities and collision into own objects
+// add hud and menus, add power ups, add graphics, add sound
+//put utilities and collision into own objects, rework the code (make it nice!),
 game.main = (function(){
 	//properties
 		//for each outside object used in here (init in loader.js) Make them public!
@@ -27,6 +27,7 @@ game.main = (function(){
 		var animationID=0;
 		var lastTime = 0;
 		var debug = true;
+		var collision = undefined;
 		//Arrays
 		var level = [];
 		var player = [];
@@ -59,6 +60,7 @@ game.main = (function(){
 		canvas.width = CANVAS_WIDTH;
 		canvas.height = CANVAS_HEIGHT;
 		ctx = canvas.getContext('2d');
+		collision=game.collision; //didn't worked other wise. Why?
 		// hook up events (mouse)
 		canvas.onmousedown = doMousedown; //do I need mouse? Maybe to start level, navigate menus
 		//setup sound
@@ -69,7 +71,6 @@ game.main = (function(){
 		gameLoop();
 		//Event listener
 		window.addEventListener("keyup",function(e){
-		
 		// bomb
 		var char = String.fromCharCode(e.keyCode);
 		if (char == "m" || char == "M"){
@@ -219,39 +220,32 @@ game.main = (function(){
 		oldPlayer[1].y=player[1].y;
 	};
 	
-	function checkCollision(nr){
+	function checkCollision(nr){ //stays here for now... Maybe move it to collsions. But player and bombs need to be public than..
 		for (var i=0; i<level.length; i++){
-			/*//Rectangle vs rectangle collision detection
-			if (player[nr].x < level[i].x + BOX.WIDTH  && player[nr].x + PLAYER.RADIUS  > level[i].x && 
-				player[nr].y < level[i].y + BOX.HEIGHT && player[nr].y + PLAYER.RADIUS > level[i].y) {
-				// The objects are touching
-				player[nr].x=oldPlayer[nr].x;
-				player[nr].y=oldPlayer[nr].y;
-			}*/
-			if(rectCircleColliding(player[nr],level[i])){
+			if(collision.rectCircleColliding(player[nr],level[i])){
 				player[nr].x=oldPlayer[nr].x;
 				player[nr].y=oldPlayer[nr].y;
 			}
 		}
-		playerHitLeft(player[nr]);
-		playerHitRight(player[nr]);
-		playerHitTop(player[nr]);
-		playerHitBottom(player[nr]);
+		collision.playerHitLeft(player[nr]);
+		collision.playerHitRight(player[nr]);
+		collision.playerHitTop(player[nr]);
+		collision.playerHitBottom(player[nr]);
 	};
 	
-	function checkExplosionsCollisions(nr){
+	function checkExplosionsCollisions(nr){ //stays here for now... Maybe move it to collsions. But player and bombs need to be public than..
 		if(bombs[nr].exploding){
 			for (var i=0; i<level.length; i++){
-				if(bombColliding(bombs[nr],level[i])){
+				if(collision.bombColliding(bombs[nr],level[i])){
 					if(level[i].fixed!=true){
 						level.splice(i, 1);
 					}
 				}
 			}
-			if(circlesIntersect(player[0],bombs[nr])){
+			if(collision.circlesIntersect(player[0],bombs[nr])){
 				player[0].lostLives=true;
 			}
-			if(circlesIntersect(player[1],bombs[nr])){
+			if(collision.circlesIntersect(player[1],bombs[nr])){
 				player[1].lostLives=true;
 			}
 		}
@@ -390,67 +384,15 @@ game.main = (function(){
 		ctx.restore();
 	};
 	
-	function playerHitLeft(c){
-		if(c.x<=PLAYER.RADIUS){
-			c.x=PLAYER.RADIUS;
-		}
-	};
-	function playerHitRight(c){
-		if(c.x>=CANVAS_WIDTH-PLAYER.RADIUS){
-			c.x=CANVAS_WIDTH-PLAYER.RADIUS;
-		}
-	};
-	
-	function playerHitTop(c){
-		if(c.y<=PLAYER.RADIUS){
-			c.y=PLAYER.RADIUS;
-		}
-	};
-	
-	function playerHitBottom(c){
-		if(c.y>=CANVAS_HEIGHT-PLAYER.RADIUS){
-			c.y=CANVAS_HEIGHT-PLAYER.RADIUS;
-		}
-	};
-	
-	// return true if the rectangle and circle are colliding
-	// this function is from user marcE from stackoverflow.com: http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle-in-html5-canvas
-	// I altered this code to fit in my needs.
-	function rectCircleColliding(circle,rect){
-		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
-		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
-
-		if (distX > (BOX.WIDTH/2 + PLAYER.RADIUS)) { return false; }
-		if (distY > (BOX.HEIGHT/2 + PLAYER.RADIUS)) { return false; }
-
-		if (distX <= (BOX.WIDTH/2)) { return true; } 
-		if (distY <= (BOX.HEIGHT/2)) { return true; }
-
-		var dx=distX-BOX.WIDTH/2;
-		var dy=distY-BOX.HEIGHT/2;
-		return (dx*dx+dy*dy<=(PLAYER.RADIUS*PLAYER.RADIUS));
-	};
-	
-	function bombColliding(circle,rect){
-		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
-		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
-
-		if (distX > (BOX.WIDTH/2 + circle.radius)) { return false; }
-		if (distY > (BOX.HEIGHT/2 + circle.radius)) { return false; }
-
-		if (distX <= (BOX.WIDTH/2)) { return true; } 
-		if (distY <= (BOX.HEIGHT/2)) { return true; }
-
-		var dx=distX-BOX.WIDTH/2;
-		var dy=distY-BOX.HEIGHT/2;
-		return (dx*dx+dy*dy<=(circle.radius*circle.radius));
-	};
-	
 	//return (or make public)
 	return{
 		init: init,
 		pauseGame: pauseGame,
 		resumeGame: resumeGame,
-		setBomb: setBomb,
+		BOX: BOX,
+		PLAYER: PLAYER,
+		CANVAS_HEIGHT: CANVAS_HEIGHT,
+		CANVAS_WIDTH: CANVAS_WIDTH,
+		collision: collision,
 	};
 }());

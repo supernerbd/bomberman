@@ -17,6 +17,8 @@ window.onload = function(){
 	//http://addyosmani.com/writing-modular-js/
 	//app.sound.init();
 	//app.main.sound = app.sound;
+	game.collision.init();
+	game.main.collision=game.collision;
 	game.main.init();
 };
 window.onblur = function(){
