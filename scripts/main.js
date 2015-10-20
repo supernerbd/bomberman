@@ -8,7 +8,10 @@ main.js
 var game = game || {};
 
 // first step: set up canvas, 2. establish animation loop, 3. draw boxes, 4. draw player, 5. check collision, 6. destructable boxes, 7. bombs, 8. exploding and destruction
+// maybe just using circles for exploding? Makes some things easier..
 // !! this. can be used for functions but not for vars!!
+// rework the code (make it nice!), add hud and menus, add power ups, add graphics, add sound
+//put utilities and collision into own objects
 game.main = (function(){
 	//properties
 		//for each outside object used in here (init in loader.js) Make them public!
@@ -24,9 +27,17 @@ game.main = (function(){
 		var animationID=0;
 		var lastTime = 0;
 		var debug = true;
+		//Arrays
 		var level = [];
 		var player = [];
 		var oldPlayer=[];
+		var bombs=[];
+		//BOMB Object
+		var BOMB = Object.freeze({
+			RADIUS: 10,
+			EXPLOSION_MAX_RADIUS_START: 80,
+			EXPLOSION_SPEED: 30,
+		});
 		//BOX object
 		var BOX = Object.freeze({
 			HEIGHT: 50,
@@ -56,6 +67,18 @@ game.main = (function(){
 		setupLevel();
 		//start animation/gameLoop
 		gameLoop();
+		//Event listener
+		window.addEventListener("keyup",function(e){
+		
+		// bomb
+		var char = String.fromCharCode(e.keyCode);
+		if (char == "m" || char == "M"){
+			setBomb(player[0].x,player[0].y,0,BOMB.RADIUS);
+		}
+		if (char == "c" || char == "C"){
+			setBomb(player[1].x,player[1].y,1,BOMB.RADIUS);
+		}
+		});
 	};
 	
 	function gameLoop(){
@@ -75,6 +98,8 @@ game.main = (function(){
 		// 4) UPDATE
 		//Player movement
 		movePlayer(dt);
+		//bombs checking
+		checkBombs(dt);
 		//check collision
 		//checkCollision();
 		
@@ -86,7 +111,11 @@ game.main = (function(){
 		// ii) draw 
 		drawLevel();
 		// iii) draw HUD
-
+			ctx.save;
+			ctx.fillStyle="black";
+			ctx.fillText("Lives: "+player[0].lives,10,10);
+			ctx.fillText("Lives: "+player[1].lives,CANVAS_WIDTH-80,10);
+			ctx.restore;
 		
 		//debug
 		if (debug){
@@ -96,6 +125,17 @@ game.main = (function(){
 	};
 	
 	function drawLevel(){
+		//draw bombs // Explosions through increasing radius
+		for (var i=0; i<bombs.length; i++){
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(bombs[i].x, bombs[i].y, bombs[i].radius, 0, Math.PI*2, false);
+			ctx.closePath();
+			ctx.fillStyle="green";
+			ctx.fill();
+			ctx.restore();
+		}
+		//draw boxes
 		for (var i=0; i<=level.length; i++){
 			if(level[i]==undefined){ }
 			else{
@@ -106,8 +146,15 @@ game.main = (function(){
 					ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 					ctx.restore();
 				}
+				else{
+					ctx.save();
+					ctx.fillStyle="blue";
+					ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+					ctx.restore();
+				}
 			}
 		}
+		
 		//drawPlayer
 		for (var i=0; i<=1; i++){ //bad code but length didn't worked..
 			ctx.save();
@@ -129,9 +176,24 @@ game.main = (function(){
 				level.push(box);
 			}
 		}
+		// add destructable boxes (code not final!!)
+		for (var i=BOX.HEIGHT; i<=CANVAS_HEIGHT; i=i+BOX.HEIGHT*2){ 
+			for (var j=BOX.WIDTH*2; j<=CANVAS_WIDTH-BOX.WIDTH*2; j=j+BOX.WIDTH*2){
+				var box = new Box(j,i,false);
+				Object.seal(box);
+				level.push(box);
+			}
+		}
+		for (var i=0; i<=CANVAS_HEIGHT; i=i+BOX.HEIGHT*2){ 
+			for (var j=BOX.WIDTH*2; j<=CANVAS_WIDTH-BOX.WIDTH*2; j=j+BOX.WIDTH*2){
+				var box = new Box(j,i,false);
+				Object.seal(box);
+				level.push(box);
+			}
+		}
 		// add player
-		var pl1=new Player(25,270,"red","KEY_UP","KEY_RIGHT","KEY_DOWN","KEY_LEFT","KEY_M");
-		var pl2=new Player(1025,270,"blue","KEY_W","KEY_D","KEY_S","KEY_A","KEY_SHIFT");
+		var pl1=new Player(25,270,"red","KEY_UP","KEY_RIGHT","KEY_DOWN","KEY_LEFT",2,2);
+		var pl2=new Player(1025,270,"blue","KEY_W","KEY_D","KEY_S","KEY_A",2,2);
 		player[0]=pl1;
 		player[1]=pl2;
 		oldPlayer[0]=new OldPlayer(player[0].x,player[0].y);
@@ -141,17 +203,16 @@ game.main = (function(){
 	function movePlayer(dt){
 		//Maybe bomb only on keyup...
 		//changable keys: run through array and check for true.
-		//myKeys.keydown[myKeys.KEYBOARD.KEY_UP] this.x+=this.xSpeed*this.speed*dt;
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=PLAYER.SPEED*dt; checkCollision(0);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=PLAYER.SPEED*dt; checkCollision(0);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=PLAYER.SPEED*dt; checkCollision(0);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=PLAYER.SPEED*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_M]){console.log("player[0] bomb")}
+		//if(myKeys.keydown[myKeys.KEYBOARD.KEY_M]){console.log("player[0] bomb")}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=PLAYER.SPEED*dt; checkCollision(1);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=PLAYER.SPEED*dt; checkCollision(1);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=PLAYER.SPEED*dt; checkCollision(1);}
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=PLAYER.SPEED*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_SHIFT]){console.log("player[1] SHIFT")}
+		//if(myKeys.keydown[myKeys.KEYBOARD.KEY_SHIFT]){setBomb(player[1].x,player[1].y,1)}
 		oldPlayer[0].x=player[0].x;
 		oldPlayer[0].y=player[0].y;
 		oldPlayer[1].x=player[1].x;
@@ -167,7 +228,7 @@ game.main = (function(){
 				player[nr].x=oldPlayer[nr].x;
 				player[nr].y=oldPlayer[nr].y;
 			}*/
-			if(RectCircleColliding(player[nr],level[i])){
+			if(rectCircleColliding(player[nr],level[i])){
 				player[nr].x=oldPlayer[nr].x;
 				player[nr].y=oldPlayer[nr].y;
 			}
@@ -176,9 +237,65 @@ game.main = (function(){
 		playerHitRight(player[nr]);
 		playerHitTop(player[nr]);
 		playerHitBottom(player[nr]);
-	}
+	};
 	
-	function Player(x,y,color,up,right,down,left,bomb){ //Keys only if changeable keys is possible
+	function checkExplosionsCollisions(nr){
+		if(bombs[nr].exploding){
+			for (var i=0; i<level.length; i++){
+				if(bombColliding(bombs[nr],level[i])){
+					if(level[i].fixed!=true){
+						level.splice(i, 1);
+					}
+				}
+			}
+			if(circlesIntersect(player[0],bombs[nr])){
+				player[0].lostLives=true;
+			}
+			if(circlesIntersect(player[1],bombs[nr])){
+				player[1].lostLives=true;
+			}
+		}
+	};
+	
+	function checkBombs(dt){
+		for (var i=0; i<bombs.length; i++){
+			if(bombs[i].exploding==false){ //check if bomb is exploding
+				if(bombs[i].time==0){ 			//check if bomb should explode
+					bombs[i].exploding=true;
+				}
+			bombs[i].time=bombs[i].time-1; //primitive timer and dt needs to be worked in
+			}
+			else{ //bomb is indeed exploding
+				//collision
+				checkExplosionsCollisions(i);
+				if(bombs[i].radius<BOMB.EXPLOSION_MAX_RADIUS_START){ //set new radius
+					bombs[i].radius+=BOMB.EXPLOSION_SPEED*dt;//explosion speed
+				}
+				else{
+					bombs[i].done=true; //set end of bomb
+				}
+				//after explosion delete entry in array, add new possebility to plant bomb
+				if(bombs[i].done){
+					if(player[bombs[i].playerNr].lostLives){
+						player[bombs[i].playerNr].lives-=1;
+						player[bombs[i].playerNr].lostLives=false;
+					}
+					player[bombs[i].playerNr].bombsLeft+=1;
+					bombs.splice(i, 1);
+				}
+			}
+		}
+	};
+	
+	function setBomb(x,y,playerNr,radius){
+		if(player[playerNr].bombsLeft>=0){ //check how many bombs left for each player
+			var nr=bombs.length;
+			bombs[nr]= new Bomb(x,y,playerNr,radius);
+			player[playerNr].bombsLeft-=1;
+		}
+	};
+	
+	function Player(x,y,color,up,right,down,left,bombsLeft,lives){ //Keys only if changeable keys is possible
 		this.x=x;
 		this.y=y;
 		this.color=color;
@@ -186,7 +303,10 @@ game.main = (function(){
 		this.right=right;
 		this.down=down;
 		this.left=left;
-		this.bomb=bomb;
+		this.bombsLeft=bombsLeft;
+		this.lives=lives;
+		this.lostLives=false;
+		this.radius=PLAYER.RADIUS;
 		return this;
 	};
 	
@@ -195,6 +315,18 @@ game.main = (function(){
 		this.y=y;
 		return this;
 	};
+	
+	function Bomb(x,y,playerNr,radius){
+		this.x=x;
+		this.y=y;
+		this.playerNr=playerNr;
+		this.radius=radius;
+		this.time=120; //own constant for the time?
+		this.size=BOX.HEIGHT*2;
+		this.exploding=false;
+		this.done=false;
+		return this;
+	}
 	
 	function Box(x,y,fixed){ //fixed is boolean
 		this.x=x;
@@ -284,7 +416,7 @@ game.main = (function(){
 	// return true if the rectangle and circle are colliding
 	// this function is from user marcE from stackoverflow.com: http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle-in-html5-canvas
 	// I altered this code to fit in my needs.
-	function RectCircleColliding(circle,rect){
+	function rectCircleColliding(circle,rect){
 		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
 		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
 
@@ -299,10 +431,26 @@ game.main = (function(){
 		return (dx*dx+dy*dy<=(PLAYER.RADIUS*PLAYER.RADIUS));
 	};
 	
+	function bombColliding(circle,rect){
+		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
+		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
+
+		if (distX > (BOX.WIDTH/2 + circle.radius)) { return false; }
+		if (distY > (BOX.HEIGHT/2 + circle.radius)) { return false; }
+
+		if (distX <= (BOX.WIDTH/2)) { return true; } 
+		if (distY <= (BOX.HEIGHT/2)) { return true; }
+
+		var dx=distX-BOX.WIDTH/2;
+		var dy=distY-BOX.HEIGHT/2;
+		return (dx*dx+dy*dy<=(circle.radius*circle.radius));
+	};
+	
 	//return (or make public)
 	return{
 		init: init,
 		pauseGame: pauseGame,
 		resumeGame: resumeGame,
+		setBomb: setBomb,
 	};
 }());
