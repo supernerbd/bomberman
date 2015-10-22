@@ -10,8 +10,10 @@ var game = game || {};
 // first step: set up canvas, 2. establish animation loop, 3. draw boxes, 4. draw player, 5. check collision, 6. destructable boxes, 7. bombs, 8. exploding and destruction
 // maybe just using circles for exploding? Makes some things easier..
 // !! this. can be used for functions but not for vars!!
-// add hud and menus, add power ups, add graphics, add sound
+// add hud and menus, add graphics, add sound
 //put utilities and collision into own objects, rework the code (make it nice!),
+//Power ups: more bombs, faster, greater explosion radius
+//Collisions: Enemy shouldn't walk through my bomb...!!
 game.main = (function(){
 	//properties
 		//for each outside object used in here (init in loader.js) Make them public!
@@ -49,6 +51,62 @@ game.main = (function(){
 			RADIUS: 20,
 			SPEED: 80,
 		});
+		//BOX_POWERUP state object
+		var BOX_POWERUP = Object.freeze({
+			NO: 0,
+			SPEED: 1,
+			BOMB: 2,
+			RADIUS: 3,
+		});
+		//VALUES_POWERUP object
+		var VALUES_POWERUP = Object.freeze({ //each value added to current value in player object
+			SPEED: 40,
+			BOMB: 1,
+			RADIUS: 40,			
+		});
+	//Other Objects
+	function Player(x,y,color,up,right,down,left,bombsLeft,lives){ //Keys only if changeable keys is possible
+		this.x=x;
+		this.y=y;
+		this.color=color;
+		this.up=up;
+		this.right=right;
+		this.down=down;
+		this.left=left;
+		this.bombsLeft=bombsLeft;
+		this.speed=PLAYER.SPEED;
+		this.explosionRadius= BOMB.EXPLOSION_MAX_RADIUS_START;
+		this.lives=lives;
+		this.lostLives=false;
+		this.radius=PLAYER.RADIUS;
+		return this;
+	};
+	
+	function OldPlayer(x,y){ //Keys only if changeable keys is possible
+		this.x=x;
+		this.y=y;
+		return this;
+	};
+	
+	function Bomb(x,y,playerNr,radius){
+		this.x=x;
+		this.y=y;
+		this.playerNr=playerNr;
+		this.radius=radius;
+		this.time=120; //own constant for the time?
+		this.size=BOX.HEIGHT*2;
+		this.exploding=false;
+		this.done=false;
+		return this;
+	}
+	
+	function Box(x,y,fixed){ //fixed is boolean
+		this.x=x;
+		this.y=y;
+		this.fixed=fixed;
+		this.powerUp=BOX_POWERUP.NO;
+		return this;
+	};
 	//methods
 	function init(){ //setup canvas, set canvas into center of screen, setup mouse controls, start animation loop
 		//setup canvas
@@ -60,7 +118,7 @@ game.main = (function(){
 		canvas.width = CANVAS_WIDTH;
 		canvas.height = CANVAS_HEIGHT;
 		ctx = canvas.getContext('2d');
-		collision=game.collision; //didn't worked other wise. Why?
+		collision=game.collision; //didn't worked otherwise. Why?
 		// hook up events (mouse)
 		canvas.onmousedown = doMousedown; //do I need mouse? Maybe to start level, navigate menus
 		//setup sound
@@ -141,17 +199,39 @@ game.main = (function(){
 			if(level[i]==undefined){ }
 			else{
 				//draw static boxes
-				if(level[i].fixed){
+				if(level[i].fixed){ //fixed boxes
 					ctx.save();
 					ctx.fillStyle="grey";
 					ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 					ctx.restore();
 				}
-				else{
-					ctx.save();
-					ctx.fillStyle="blue";
-					ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
-					ctx.restore();
+				else{ //non fixed boxes
+					switch (level[i].powerUp){
+						case 0: //without powerup
+							ctx.save();
+							ctx.fillStyle="blue";
+							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.restore();
+							break;
+						case 1: //with powerup speed
+							ctx.save();
+							ctx.fillStyle="green";
+							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.restore();
+							break;
+						case 2: //with powerup bombs
+							ctx.save();
+							ctx.fillStyle="yellow";
+							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.restore();
+							break;
+						case 3: //with powerup radius
+							ctx.save();
+							ctx.fillStyle="black";
+							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.restore();
+							break;
+					}
 				}
 			}
 		}
@@ -204,15 +284,15 @@ game.main = (function(){
 	function movePlayer(dt){
 		//Maybe bomb only on keyup...
 		//changable keys: run through array and check for true.
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=PLAYER.SPEED*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=PLAYER.SPEED*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=PLAYER.SPEED*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=PLAYER.SPEED*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=player[0].speed*dt; checkCollision(0);}
 		//if(myKeys.keydown[myKeys.KEYBOARD.KEY_M]){console.log("player[0] bomb")}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=PLAYER.SPEED*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=PLAYER.SPEED*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=PLAYER.SPEED*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=PLAYER.SPEED*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=player[1].speed*dt; checkCollision(1);}
 		//if(myKeys.keydown[myKeys.KEYBOARD.KEY_SHIFT]){setBomb(player[1].x,player[1].y,1)}
 		oldPlayer[0].x=player[0].x;
 		oldPlayer[0].y=player[0].y;
@@ -223,8 +303,24 @@ game.main = (function(){
 	function checkCollision(nr){ //stays here for now... Maybe move it to collsions. But player and bombs need to be public than..
 		for (var i=0; i<level.length; i++){
 			if(collision.rectCircleColliding(player[nr],level[i])){
-				player[nr].x=oldPlayer[nr].x;
-				player[nr].y=oldPlayer[nr].y;
+				switch(level[i].powerUp){
+					case 0:
+					player[nr].x=oldPlayer[nr].x; //lets player stay where he is. No movement.
+					player[nr].y=oldPlayer[nr].y;
+					break;
+					case 1: //Set powerup values and delete boxes after
+					player[nr].speed+=VALUES_POWERUP.SPEED;
+					level.splice(i, 1);
+					break;
+					case 2:
+					player[nr].bombsLeft+=VALUES_POWERUP.BOMB;
+					level.splice(i, 1);
+					break;
+					case 3:
+					player[nr].explosionRadius+=VALUES_POWERUP.RADIUS;
+					level.splice(i, 1);
+					break;
+				}
 			}
 		}
 		collision.playerHitLeft(player[nr]);
@@ -237,8 +333,24 @@ game.main = (function(){
 		if(bombs[nr].exploding){
 			for (var i=0; i<level.length; i++){
 				if(collision.bombColliding(bombs[nr],level[i])){
-					if(level[i].fixed!=true){
-						level.splice(i, 1);
+					if(level[i].fixed!=true){//determine powerups and properly delete entry in array
+						if(level[i].powerUp==0){
+							var powerUp=determinePowerUp();
+							switch (powerUp){
+								case false:
+								level.splice(i, 1);
+								break;
+								case 1:
+								level[i].powerUp=1;
+								break;
+								case 2:
+								level[i].powerUp=2;
+								break;
+								case 3:
+								level[i].powerUp=3;
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -262,7 +374,7 @@ game.main = (function(){
 			else{ //bomb is indeed exploding
 				//collision
 				checkExplosionsCollisions(i);
-				if(bombs[i].radius<BOMB.EXPLOSION_MAX_RADIUS_START){ //set new radius
+				if(bombs[i].radius<player[bombs[i].playerNr].explosionRadius){ //set new radius
 					bombs[i].radius+=BOMB.EXPLOSION_SPEED*dt;//explosion speed
 				}
 				else{
@@ -289,44 +401,23 @@ game.main = (function(){
 		}
 	};
 	
-	function Player(x,y,color,up,right,down,left,bombsLeft,lives){ //Keys only if changeable keys is possible
-		this.x=x;
-		this.y=y;
-		this.color=color;
-		this.up=up;
-		this.right=right;
-		this.down=down;
-		this.left=left;
-		this.bombsLeft=bombsLeft;
-		this.lives=lives;
-		this.lostLives=false;
-		this.radius=PLAYER.RADIUS;
-		return this;
-	};
-	
-	function OldPlayer(x,y){ //Keys only if changeable keys is possible
-		this.x=x;
-		this.y=y;
-		return this;
-	};
-	
-	function Bomb(x,y,playerNr,radius){
-		this.x=x;
-		this.y=y;
-		this.playerNr=playerNr;
-		this.radius=radius;
-		this.time=120; //own constant for the time?
-		this.size=BOX.HEIGHT*2;
-		this.exploding=false;
-		this.done=false;
-		return this;
-	}
-	
-	function Box(x,y,fixed){ //fixed is boolean
-		this.x=x;
-		this.y=y;
-		this.fixed=fixed;
-		return this;
+	function determinePowerUp(){ //randomize powerup occurnces
+		var firstStep=Math.random();
+		if (firstStep<=.8){
+			return false;
+		}
+		else{
+			var secondStep=getRandom(0,3);
+			if(secondStep<1){
+				return 1;
+			}
+			if(secondStep<2 && secondStep>1){
+				return 2;
+			}
+			else{
+				return 3;
+			}
+		}
 	};
 	
 	function fillText(ctx, string, x, y, css, color) {
