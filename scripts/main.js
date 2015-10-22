@@ -132,10 +132,10 @@ game.main = (function(){
 		// bomb
 		var char = String.fromCharCode(e.keyCode);
 		if (char == "m" || char == "M"){
-			setBomb(player[0].x,player[0].y,0,BOMB.RADIUS);
+			setBomb(player[1].x,player[1].y,0,BOMB.RADIUS);
 		}
 		if (char == "c" || char == "C"){
-			setBomb(player[1].x,player[1].y,1,BOMB.RADIUS);
+			setBomb(player[0].x,player[0].y,1,BOMB.RADIUS);
 		}
 		});
 	};
@@ -284,15 +284,15 @@ game.main = (function(){
 	function movePlayer(dt){
 		//Maybe bomb only on keyup...
 		//changable keys: run through array and check for true.
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[0].y-=player[0].speed*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[0].x+=player[0].speed*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[0].y+=player[0].speed*dt; checkCollision(0);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[0].x-=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[1].y-=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_RIGHT]){player[1].x+=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_DOWN]){player[1].y+=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_LEFT]){player[1].x-=player[1].speed*dt; checkCollision(1);}
 		//if(myKeys.keydown[myKeys.KEYBOARD.KEY_M]){console.log("player[0] bomb")}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[1].y-=player[1].speed*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[1].x+=player[1].speed*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[1].y+=player[1].speed*dt; checkCollision(1);}
-		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[1].x-=player[1].speed*dt; checkCollision(1);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_W]){player[0].y-=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_D]){player[0].x+=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_S]){player[0].y+=player[0].speed*dt; checkCollision(0);}
+		if(myKeys.keydown[myKeys.KEYBOARD.KEY_A]){player[0].x-=player[0].speed*dt; checkCollision(0);}
 		//if(myKeys.keydown[myKeys.KEYBOARD.KEY_SHIFT]){setBomb(player[1].x,player[1].y,1)}
 		oldPlayer[0].x=player[0].x;
 		oldPlayer[0].y=player[0].y;
