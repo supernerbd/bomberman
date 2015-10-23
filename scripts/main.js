@@ -30,11 +30,21 @@ game.main = (function(){
 		var lastTime = 0;
 		var debug = true;
 		var collision = undefined;
+		var gameState= undefined;
 		//Arrays
 		var level = [];
 		var player = [];
 		var oldPlayer=[];
 		var bombs=[];
+		//GAME_STATE Object
+		var GAME_STATE = Object.freeze({ 
+			BEGIN : 0,
+			DEFAULT : 1,
+			/*EXPLODING : 2,
+			ROUND_OVER : 3,
+			REPEAT_LEVEL : 4,*/
+			END : 5
+		});
 		//BOMB Object
 		var BOMB = Object.freeze({
 			RADIUS: 10,
@@ -124,6 +134,7 @@ game.main = (function(){
 		//setup sound
 		
 		//setup game state/level
+		gameState = GAME_STATE.START;
 		setupLevel();
 		//start animation/gameLoop
 		gameLoop();
@@ -132,12 +143,17 @@ game.main = (function(){
 		// bomb
 		var char = String.fromCharCode(e.keyCode);
 		if (char == "m" || char == "M"){
-			setBomb(player[1].x,player[1].y,0,BOMB.RADIUS);
+			setBomb(player[1].x,player[1].y,1,BOMB.RADIUS);
 		}
 		if (char == "c" || char == "C"){
-			setBomb(player[0].x,player[0].y,1,BOMB.RADIUS);
+			setBomb(player[0].x,player[0].y,0,BOMB.RADIUS);
 		}
 		});
+	};
+	
+	function reset(){
+		setupLevel();
+		bombs=[];
 	};
 	
 	function gameLoop(){
@@ -168,18 +184,59 @@ game.main = (function(){
 		ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
 	
 		// ii) draw 
-		drawLevel();
+		if(gameState==GAME_STATE.DEFAULT){
+			drawLevel();
+		}
 		// iii) draw HUD
-			ctx.save;
-			ctx.fillStyle="black";
-			ctx.fillText("Lives: "+player[0].lives,10,10);
-			ctx.fillText("Lives: "+player[1].lives,CANVAS_WIDTH-80,10);
-			ctx.restore;
-		
+		drawHUD();		
 		//debug
 		if (debug){
 			// draw dt in bottom right corner
 			fillText(ctx,"dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt courier", "black");
+		}
+	};
+	
+	function drawHUD(){
+		switch (gameState){
+			case GAME_STATE.START:
+				ctx.save();
+				ctx.fillStyle="black";
+				ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
+				ctx.textAlign="center";
+				ctx.textBaseline="middle";
+				fillText("BOMBER", CANVAS_WIDTH/2,150, "50pt courier", "white");
+				fillText("Start game with a click...", CANVAS_WIDTH/2,CANVAS_HEIGHT-100, "30pt courier", "white");
+				fillText("Left Player controle your character ", CANVAS_WIDTH/2,CANVAS_HEIGHT-200, "20pt courier", "white");
+				fillText("with W,A,S,D and set Bomb with C.", CANVAS_WIDTH/2,CANVAS_HEIGHT-160, "20pt courier", "white");
+				fillText("Right Player controle your character with ", CANVAS_WIDTH/2,CANVAS_HEIGHT-300, "20pt courier", "white");
+				fillText("UP,DOWN,LEFT,RIGHT and set Bomb with M.", CANVAS_WIDTH/2,CANVAS_HEIGHT-260, "20pt courier", "white");
+				ctx.restore();
+			break;
+			case GAME_STATE.DEFAULT:
+				ctx.save();
+				ctx.fillStyle="black";
+				ctx.fillText("Lives: "+player[0].lives,10,10);
+				ctx.fillText("Lives: "+player[1].lives,CANVAS_WIDTH-80,10);
+				ctx.restore();
+			break;
+			case GAME_STATE.END:
+				ctx.save();
+				ctx.fillStyle="black";
+				ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
+				ctx.textAlign="center";
+				ctx.textBaseline="middle";
+				if(player[0].lives==player[1].lives){
+					fillText("DRAW! Try again.", CANVAS_WIDTH/2,CANVAS_HEIGHT/2, "50pt courier", "white");
+				}
+				if(player[0].lives<player[1].lives){
+					fillText("Right Player Wins", CANVAS_WIDTH/2,CANVAS_HEIGHT/2, "50pt courier", "white");
+				}
+				if(player[0].lives>player[1].lives){
+					fillText("Left Player Wins", CANVAS_WIDTH/2,CANVAS_HEIGHT/2, "50pt courier", "white");
+				}
+				fillText("Restart game with a click...", CANVAS_WIDTH/2,CANVAS_HEIGHT-100, "30pt courier", "white");
+				ctx.restore();
+			break;
 		}
 	};
 	
@@ -273,10 +330,10 @@ game.main = (function(){
 			}
 		}
 		// add player
-		var pl1=new Player(25,270,"red","KEY_UP","KEY_RIGHT","KEY_DOWN","KEY_LEFT",2,2);
-		var pl2=new Player(1025,270,"blue","KEY_W","KEY_D","KEY_S","KEY_A",2,2);
-		player[0]=pl1;
-		player[1]=pl2;
+		var pl1=new Player(1025,270,"red","KEY_UP","KEY_RIGHT","KEY_DOWN","KEY_LEFT",2,2);
+		var pl2=new Player(25,270,"blue","KEY_W","KEY_D","KEY_S","KEY_A",2,2);
+		player[1]=pl1;
+		player[0]=pl2;
 		oldPlayer[0]=new OldPlayer(player[0].x,player[0].y);
 		oldPlayer[1]=new OldPlayer(player[1].x,player[1].y);
 	};
@@ -384,6 +441,9 @@ game.main = (function(){
 				if(bombs[i].done){
 					if(player[bombs[i].playerNr].lostLives){
 						player[bombs[i].playerNr].lives-=1;
+						if(player[bombs[i].playerNr].lives<=0){
+							gameState=GAME_STATE.END;
+						}
 						player[bombs[i].playerNr].lostLives=false;
 					}
 					player[bombs[i].playerNr].bombsLeft+=1;
@@ -420,7 +480,7 @@ game.main = (function(){
 		}
 	};
 	
-	function fillText(ctx, string, x, y, css, color) {
+	function fillText(string, x, y, css, color) {
 		ctx.save();
 		// https://developer.mozilla.org/en-US/docs/Web/CSS/font
 		ctx.font = css;
@@ -443,7 +503,16 @@ game.main = (function(){
 	
 	function doMousedown(e){ //not that important in this game, but handy in navigating the game menu
 		var mouse=getMouse(e);
-		console.log("mouse click at " + mouse.x + " " + mouse.y);
+		//console.log("mouse click at " + mouse.x + " " + mouse.y);
+		switch (gameState){
+			case GAME_STATE.START:
+				gameState=GAME_STATE.DEFAULT;
+			break;
+			case GAME_STATE.END:
+				gameState=GAME_STATE.START;
+				reset();
+			break;
+		}
 	};
 	
 	function pauseGame(){//pause (stop audio, stop animation, call paused screen)
@@ -471,7 +540,7 @@ game.main = (function(){
 		ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		ctx.textAlign="center";
 		ctx.textBaseline="middle";
-		fillText(ctx,"... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt courier", "white")
+		fillText("... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt courier", "white")
 		ctx.restore();
 	};
 	
