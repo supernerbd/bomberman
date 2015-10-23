@@ -192,7 +192,7 @@ game.main = (function(){
 		//debug
 		if (debug){
 			// draw dt in bottom right corner
-			fillText(ctx,"dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt courier", "black");
+			fillText("dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt courier", "black");
 		}
 	};
 	
@@ -357,7 +357,7 @@ game.main = (function(){
 		oldPlayer[1].y=player[1].y;
 	};
 	
-	function checkCollision(nr){ //stays here for now... Maybe move it to collsions. But player and bombs need to be public than..
+	function checkCollision(nr){ //
 		for (var i=0; i<level.length; i++){
 			if(collision.rectCircleColliding(player[nr],level[i])){
 				switch(level[i].powerUp){
@@ -386,8 +386,8 @@ game.main = (function(){
 		collision.playerHitBottom(player[nr]);
 	};
 	
-	function checkExplosionsCollisions(nr){ //stays here for now... Maybe move it to collsions. But player and bombs need to be public than..
-		if(bombs[nr].exploding){
+	function checkExplosionsCollisions(nr){ //
+		if(bombs[nr].exploding){ //handle explosion and power Ups
 			for (var i=0; i<level.length; i++){
 				if(collision.bombColliding(bombs[nr],level[i])){
 					if(level[i].fixed!=true){//determine powerups and properly delete entry in array
@@ -418,11 +418,25 @@ game.main = (function(){
 				player[1].lostLives=true;
 			}
 		}
+		/*else{ //handle collision
+			console.log("collision");
+			if(collision.circlesIntersect(player[0],bombs[nr])){
+				player[0].x=oldPlayer[0].x; //lets player stay where he is. No movement.
+				player[0].y=oldPlayer[0].y;
+				console.log("collision0");
+			}
+			if(collision.circlesIntersect(player[1],bombs[nr])){
+				player[1].x=oldPlayer[1].x; //lets player stay where he is. No movement.
+				player[1].y=oldPlayer[1].y;
+				console.log("collision1");
+			}
+		}*/
 	};
 	
 	function checkBombs(dt){
 		for (var i=0; i<bombs.length; i++){
 			if(bombs[i].exploding==false){ //check if bomb is exploding
+				checkExplosionsCollisions(i);
 				if(bombs[i].time==0){ 			//check if bomb should explode
 					bombs[i].exploding=true;
 				}
@@ -439,12 +453,19 @@ game.main = (function(){
 				}
 				//after explosion delete entry in array, add new possebility to plant bomb
 				if(bombs[i].done){
-					if(player[bombs[i].playerNr].lostLives){
-						player[bombs[i].playerNr].lives-=1;
-						if(player[bombs[i].playerNr].lives<=0){
+					if(player[0].lostLives){
+						player[0].lives-=1;
+						if(player[0].lives<=0){
 							gameState=GAME_STATE.END;
 						}
-						player[bombs[i].playerNr].lostLives=false;
+						player[0].lostLives=false;
+					}
+					if(player[1].lostLives){
+						player[1].lives-=1;
+						if(player[1].lives<=0){
+							gameState=GAME_STATE.END;
+						}
+						player[1].lostLives=false;
 					}
 					player[bombs[i].playerNr].bombsLeft+=1;
 					bombs.splice(i, 1);
