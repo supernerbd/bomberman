@@ -180,8 +180,9 @@ game.main = (function(){
 		
 		// 5) DRAW	
 		// i) draw background
-		ctx.fillStyle = "white"; 
-		ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
+		//ctx.fillStyle = "green"; 
+		//ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
+		ctx.drawImage(background,0,0, CANVAS_WIDTH,CANVAS_HEIGHT);
 	
 		// ii) draw 
 		if(gameState==GAME_STATE.DEFAULT){
@@ -251,6 +252,7 @@ game.main = (function(){
 			ctx.closePath();
 			ctx.fillStyle="green";
 			ctx.fill();
+			ctx.drawImage(bomb,bombs[i].x-15, bombs[i].y-15, 30,30); //should be drawn only when bomb isn't exploding..
 			ctx.restore();
 		}
 		//draw boxes

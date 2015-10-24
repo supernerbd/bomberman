@@ -1,0 +1,9 @@
+Media Credits:
+
+Images:
+Background: "High Resolution Textures". Found here: http://seamless-pixels.blogspot.co.uk/2014/03/greengrassgroundlanddirtaerialtopseamle.html.
+Bomb: "Open Clipart Pictures". Found here: https://pixabay.com/de/bombe-explosiv-detonation-fuze-154456/. 
+Explosion:
+All other Images: Daniel Cook: "Planet Cute". Sprite collection. Found here: http://www.lostgarden.com/2007/05/dancs-miraculously-flexible-game.html.
+
+Sounds:
