@@ -31,6 +31,12 @@ game.main = (function(){
 		var debug = true;
 		var collision = undefined;
 		var gameState= undefined;
+		var player0Img;
+		var powerUp0Img;
+		var powerUp1Img;
+		var powerUp2Img;
+		var block0Igm;
+		var block1Igm;
 		//Arrays
 		var level = [];
 		var player = [];
@@ -137,6 +143,12 @@ game.main = (function(){
 		gameState = GAME_STATE.START;
 		setupLevel();
 		//start animation/gameLoop
+		player0Img=document.querySelector("#player0");
+		powerUp0Img=document.querySelector("#powerUp0");
+		powerUp1Img=document.querySelector("#powerUp1");
+		powerUp2Img=document.querySelector("#powerUp2");
+		block0Igm=document.querySelector("#block0");
+		block1Igm=document.querySelector("#block1");
 		gameLoop();
 		//Event listener
 		window.addEventListener("keyup",function(e){
@@ -260,6 +272,7 @@ game.main = (function(){
 					ctx.save();
 					ctx.fillStyle="grey";
 					ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+					ctx.drawImage(block1,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 					ctx.restore();
 				}
 				else{ //non fixed boxes
@@ -268,24 +281,28 @@ game.main = (function(){
 							ctx.save();
 							ctx.fillStyle="blue";
 							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.drawImage(block0,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 						case 1: //with powerup speed
 							ctx.save();
 							ctx.fillStyle="green";
 							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.drawImage(powerUp0,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 						case 2: //with powerup bombs
 							ctx.save();
 							ctx.fillStyle="yellow";
 							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.drawImage(powerUp1,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 						case 3: //with powerup radius
 							ctx.save();
 							ctx.fillStyle="black";
 							ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
+							ctx.drawImage(powerUp2,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 					}
@@ -297,10 +314,11 @@ game.main = (function(){
 		for (var i=0; i<=1; i++){ //bad code but length didn't worked..
 			ctx.save();
 			ctx.beginPath();
-			ctx.arc(player[i].x, player[i].y, PLAYER.RADIUS, 0, Math.PI*2, false);
-			ctx.closePath();
-			ctx.fillStyle=player[i].color;
-			ctx.fill();
+			//ctx.arc(player[i].x, player[i].y, PLAYER.RADIUS, 0, Math.PI*2, false);
+			//ctx.closePath();
+			//ctx.fillStyle=player[i].color;
+			//ctx.fill();
+			ctx.drawImage(player0Img,player[i].x-PLAYER.RADIUS, player[i].y-PLAYER.RADIUS, PLAYER.RADIUS*2,PLAYER.RADIUS*2);
 			ctx.restore();
 		}
 	};
