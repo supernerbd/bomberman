@@ -180,8 +180,6 @@ game.main = (function(){
 		
 		// 5) DRAW	
 		// i) draw background
-		//ctx.fillStyle = "green"; 
-		//ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
 		ctx.drawImage(background,0,0, CANVAS_WIDTH,CANVAS_HEIGHT);
 	
 		// ii) draw 
@@ -244,17 +242,6 @@ game.main = (function(){
 	};
 	
 	function drawLevel(){
-		//draw bombs // Explosions through increasing radius
-		for (var i=0; i<bombs.length; i++){
-			ctx.save();
-			ctx.beginPath();
-			ctx.arc(bombs[i].x, bombs[i].y, bombs[i].radius, 0, Math.PI*2, false);
-			ctx.closePath();
-			ctx.fillStyle="green";
-			ctx.fill();
-			ctx.drawImage(bomb,bombs[i].x-15, bombs[i].y-15, 30,30); //should be drawn only when bomb isn't exploding..
-			ctx.restore();
-		}
 		//draw boxes
 		for (var i=0; i<=level.length; i++){
 			if(level[i]==undefined){ }
@@ -262,8 +249,6 @@ game.main = (function(){
 				//draw static boxes
 				if(level[i].fixed){ //fixed boxes
 					ctx.save();
-					//ctx.fillStyle="grey";
-					//ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 					ctx.drawImage(block1,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 					ctx.restore();
 				}
@@ -271,29 +256,21 @@ game.main = (function(){
 					switch (level[i].powerUp){
 						case 0: //without powerup
 							ctx.save();
-							//ctx.fillStyle="blue";
-							//ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 							ctx.drawImage(block0,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 						case 1: //with powerup speed
 							ctx.save();
-							//ctx.fillStyle="green";
-							//ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 							ctx.drawImage(powerUp0,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 						case 2: //with powerup bombs
 							ctx.save();
-							//ctx.fillStyle="yellow";
-							//ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 							ctx.drawImage(powerUp1,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
 						case 3: //with powerup radius
 							ctx.save();
-							//ctx.fillStyle="black";
-							//ctx.fillRect(level[i].x,level[i].y,BOX.HEIGHT,BOX.WIDTH);
 							ctx.drawImage(powerUp2,level[i].x, level[i].y, BOX.HEIGHT,BOX.WIDTH);
 							ctx.restore();
 							break;
@@ -305,11 +282,6 @@ game.main = (function(){
 		//drawPlayer
 		for (var i=0; i<=1; i++){ //bad code but length didn't worked..
 			ctx.save();
-			ctx.beginPath();
-			//ctx.arc(player[i].x, player[i].y, PLAYER.RADIUS, 0, Math.PI*2, false);
-			//ctx.closePath();
-			//ctx.fillStyle=player[i].color;
-			//ctx.fill();
 			if(i==0){
 			ctx.drawImage(player0,player[i].x-PLAYER.RADIUS, player[i].y-PLAYER.RADIUS, PLAYER.RADIUS*2,PLAYER.RADIUS*2);
 			}
@@ -317,6 +289,19 @@ game.main = (function(){
 				ctx.drawImage(player1,player[i].x-PLAYER.RADIUS, player[i].y-PLAYER.RADIUS, PLAYER.RADIUS*2,PLAYER.RADIUS*2);
 			}
 			ctx.restore();
+		}
+		//draw bombs // Explosions through increasing radius
+		for (var i=0; i<bombs.length; i++){
+			ctx.save();
+			ctx.drawImage(bomb,bombs[i].x-15, bombs[i].y-15, 30,30);
+			if(bombs[i].exploding){
+				ctx.beginPath();
+				ctx.arc(bombs[i].x, bombs[i].y, bombs[i].radius, 0, Math.PI*2, false);
+				ctx.closePath();
+				ctx.fillStyle=makeGradient(ctx, bombs[i].x, bombs[i].y, bombs[i].radius, bombs[i].x, bombs[i].y, 0);//"green";
+				ctx.fill();
+				ctx.restore();
+			}
 		}
 	};
 	

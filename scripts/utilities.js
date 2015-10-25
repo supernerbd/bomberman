@@ -20,6 +20,15 @@ function makeColor(red, green, blue, alpha){
 	return color;
 }
 
+function makeGradient(ctx, x0, y0, r0, x1, y1, r1){
+	var gradient = ctx.createRadialGradient(x0, y0, r0, x1, y1, r1);//100,100,100,100,100,0);
+	gradient.addColorStop(1,"red");
+	gradient.addColorStop(0.7,"yellow");
+	gradient.addColorStop(0.2,"orange");
+	gradient.addColorStop(0,"black");
+	return gradient;
+};
+
 // Function Name: getRandomColor()
 // returns a random color of alpha 1.0
 // http://paulirish.com/2009/random-hex-color-code-snippets/
