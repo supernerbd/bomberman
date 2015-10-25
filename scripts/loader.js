@@ -19,6 +19,7 @@ window.onload = function(){
 	//app.main.sound = app.sound;
 	game.collision.init();
 	game.main.collision=game.collision;
+	game.main.Emitter=game.Emitter;
 	game.main.init();
 };
 window.onblur = function(){

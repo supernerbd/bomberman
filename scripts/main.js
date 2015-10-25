@@ -30,6 +30,7 @@ game.main = (function(){
 		var lastTime = 0;
 		var debug = true;
 		var collision = undefined;
+		var Emitter=undefined;
 		var gameState= undefined;
 		//Arrays
 		var level = [];
@@ -106,6 +107,7 @@ game.main = (function(){
 		this.time=120; //own constant for the time?
 		this.size=BOX.HEIGHT*2;
 		this.exploding=false;
+		this.emitter=new Emitter;
 		this.done=false;
 		return this;
 	}
@@ -129,6 +131,7 @@ game.main = (function(){
 		canvas.height = CANVAS_HEIGHT;
 		ctx = canvas.getContext('2d');
 		collision=game.collision; //didn't worked otherwise. Why?
+		Emitter=game.Emitter;
 		// hook up events (mouse)
 		canvas.onmousedown = doMousedown; //do I need mouse? Maybe to start level, navigate menus
 		//setup sound
@@ -293,7 +296,10 @@ game.main = (function(){
 		//draw bombs // Explosions through increasing radius
 		for (var i=0; i<bombs.length; i++){
 			ctx.save();
-			ctx.drawImage(bomb,bombs[i].x-15, bombs[i].y-15, 30,30);
+			if(!bombs[i].exploding){
+				ctx.drawImage(bomb,bombs[i].x-15, bombs[i].y-15, 30,30);
+				bombs[i].emitter.updateAndDraw(ctx,bombs[i]);
+			}
 			if(bombs[i].exploding){
 				ctx.beginPath();
 				ctx.arc(bombs[i].x, bombs[i].y, bombs[i].radius, 0, Math.PI*2, false);
@@ -451,7 +457,7 @@ game.main = (function(){
 				else{
 					bombs[i].done=true; //set end of bomb
 				}
-				//after explosion delete entry in array, add new possebility to plant bomb
+				//after explosion handle lost lives, delete entry in array, add new possebility to plant bomb
 				if(bombs[i].done){
 					if(player[0].lostLives){
 						player[0].lives-=1;
@@ -478,6 +484,7 @@ game.main = (function(){
 		if(player[playerNr].bombsLeft>=0){ //check how many bombs left for each player
 			var nr=bombs.length;
 			bombs[nr]= new Bomb(x,y,playerNr,radius);
+			bombs[nr].emitter.createParticles(bombs[nr]);
 			player[playerNr].bombsLeft-=1;
 		}
 	};
@@ -575,5 +582,6 @@ game.main = (function(){
 		CANVAS_HEIGHT: CANVAS_HEIGHT,
 		CANVAS_WIDTH: CANVAS_WIDTH,
 		collision: collision,
+		Emitter: Emitter,
 	};
 }());
