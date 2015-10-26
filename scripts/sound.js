@@ -16,7 +16,7 @@ game.sound = (function(){ //init sound and set sound vars (return)
 	var explosion="explosion";
 	var ticking="ticking";
 	var walking="walking";
-	var backgroundSound;
+	var backgroundSound=undefined;
 	
 	function init(){ //registers sounds for soundJS
 		 createjs.Sound.registerSound("media/8406__freed__170404a.mp3", background0);
@@ -32,7 +32,6 @@ game.sound = (function(){ //init sound and set sound vars (return)
 	function playBackgroundSound(){ //starts background sounds
 		backgroundSound=createjs.Sound.play(background1);
 		backgroundSound.loop=-1;
-		console.log(backgroundSound);
 	};
 	
 	function changeBackgroundSound(nr){ //changes track for background sounds
@@ -53,6 +52,15 @@ game.sound = (function(){ //init sound and set sound vars (return)
 		backgroundSound.paused=false;
 	};
 	
+	function backgroundPlayed(){ //was background played before?
+		if(backgroundSound==undefined){
+			return false;
+		}
+		else{
+			return true;
+		}
+	};
+	
 	return{ //returns public methods and vars
 	explosion: explosion,
 	ticking: ticking,
@@ -62,5 +70,6 @@ game.sound = (function(){ //init sound and set sound vars (return)
 	stopBackgroundSound: stopBackgroundSound,
 	pauseBackgroundSound: pauseBackgroundSound,
 	resumeBackgroundSound: resumeBackgroundSound,
+	backgroundPlayed: backgroundPlayed
 	};
 }());

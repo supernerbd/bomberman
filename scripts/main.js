@@ -28,11 +28,13 @@ game.main = (function(){
 		var windowWidth;
 		var animationID=0;
 		var lastTime = 0;
-		var debug = true;
+		var debug = false;
 		var collision = undefined;
 		var Emitter=undefined;
 		var gameState= undefined;
 		var sound=undefined;
+		var storage=undefined;
+		var ui=undefined;
 		//Arrays
 		var level = [];
 		var player = [];
@@ -42,9 +44,7 @@ game.main = (function(){
 		var GAME_STATE = Object.freeze({ //game state
 			BEGIN : 0,
 			DEFAULT : 1,
-			/*EXPLODING : 2,
-			ROUND_OVER : 3,
-			REPEAT_LEVEL : 4,*/
+			UI: 2,
 			END : 5
 		});
 		//BOMB Object
@@ -139,6 +139,11 @@ game.main = (function(){
 		//setup sound
 		sound=game.sound;
 		sound.init();
+		//setup ui
+		ui=game.ui;
+		ui.init(ctx);
+		//setup storage
+		storage=game.storage.init(); //determines if visitor was here before
 		//setup game state/level
 		gameState = GAME_STATE.START;
 		setupLevel();
@@ -183,8 +188,6 @@ game.main = (function(){
 		movePlayer(dt);
 		//bombs checking
 		checkBombs(dt);
-		//check collision
-		//checkCollision();
 		
 		// 5) DRAW	
 		// i) draw background
@@ -199,52 +202,20 @@ game.main = (function(){
 		//debug
 		if (debug){
 			// draw dt in bottom right corner
-			fillText("dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt courier", "black");
+			ui.fillText("dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt courier", "black");
 		}
 	};
 	
 	function drawHUD(){ //draws HUD every frame
 		switch (gameState){
 			case GAME_STATE.START:
-				ctx.save();
-				ctx.fillStyle="black";
-				ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
-				ctx.textAlign="center";
-				ctx.textBaseline="middle";
-				fillText("BOMBER", CANVAS_WIDTH/2,150, "50pt courier", "white");
-				fillText("Start game with a click...", CANVAS_WIDTH/2,CANVAS_HEIGHT-100, "30pt courier", "white");
-				fillText("Left Player controle your character ", CANVAS_WIDTH/2,CANVAS_HEIGHT-200, "20pt courier", "white");
-				fillText("with W,A,S,D and set Bomb with C.", CANVAS_WIDTH/2,CANVAS_HEIGHT-160, "20pt courier", "white");
-				fillText("Right Player controle your character with ", CANVAS_WIDTH/2,CANVAS_HEIGHT-300, "20pt courier", "white");
-				fillText("UP,DOWN,LEFT,RIGHT and set Bomb with M.", CANVAS_WIDTH/2,CANVAS_HEIGHT-260, "20pt courier", "white");
-				ctx.restore();
+				ui.drawStart();
 			break;
 			case GAME_STATE.DEFAULT:
-				ctx.save();
-				ctx.fillStyle="black";
-				ctx.drawImage(heart,10, 1, 40,40);
-				ctx.drawImage(heart,CANVAS_WIDTH-50,1, 40,40);
-				fillText(player[0].lives,30,20,"15pt courier", "white");
-				fillText(player[1].lives,CANVAS_WIDTH-30,20,"15pt courier", "white");
-				ctx.restore();
+				ui.drawDefault(player);
 			break;
 			case GAME_STATE.END:
-				ctx.save();
-				ctx.fillStyle="black";
-				ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); 
-				ctx.textAlign="center";
-				ctx.textBaseline="middle";
-				if(player[0].lives==player[1].lives){
-					fillText("DRAW! Try again.", CANVAS_WIDTH/2,CANVAS_HEIGHT/2, "50pt courier", "white");
-				}
-				if(player[0].lives<player[1].lives){
-					fillText("Right Player Wins", CANVAS_WIDTH/2,CANVAS_HEIGHT/2, "50pt courier", "white");
-				}
-				if(player[0].lives>player[1].lives){
-					fillText("Left Player Wins", CANVAS_WIDTH/2,CANVAS_HEIGHT/2, "50pt courier", "white");
-				}
-				fillText("Restart game with a click...", CANVAS_WIDTH/2,CANVAS_HEIGHT-100, "30pt courier", "white");
-				ctx.restore();
+				ui.drawEnd(player);
 			break;
 		}
 	};
@@ -502,15 +473,6 @@ game.main = (function(){
 		}
 	};
 	
-	function fillText(string, x, y, css, color) { //helper to write text on canvas
-		ctx.save();
-		// https://developer.mozilla.org/en-US/docs/Web/CSS/font
-		ctx.font = css;
-		ctx.fillStyle = color;
-		ctx.fillText(string, x, y);
-		ctx.restore();
-	};
-	
 	function calculateDeltaTime(){ //calculates delta time for smother drawings
 		// what's with (+ new Date) below?
 		// + calls Date.valueOf(), which converts it from an object to a 	
@@ -544,7 +506,9 @@ game.main = (function(){
 		paused=true;
 		//stop the animation loop
 		cancelAnimationFrame(animationID);
-		sound.pauseBackgroundSound();
+		if(sound.backgroundPlayed()){
+			sound.pauseBackgroundSound();
+		}
 		// call update() once so that our paused screen gets drawn
 		gameLoop();
 	};
@@ -557,7 +521,9 @@ game.main = (function(){
 		//this.sound.playBGAudio();
 		//restart the loop
 		gameLoop();
-		sound.resumeBackgroundSound();
+		if(sound.backgroundPlayed()){
+			sound.resumeBackgroundSound();
+		}
 	};
 	
 	function drawPauseScreen(){ //draws pause screen
@@ -566,7 +532,7 @@ game.main = (function(){
 		ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		ctx.textAlign="center";
 		ctx.textBaseline="middle";
-		fillText("... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt courier", "white")
+		ui.fillText("... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt courier", "white")
 		ctx.restore();
 	};
 	

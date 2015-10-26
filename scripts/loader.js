@@ -15,12 +15,10 @@ window.onload = function(){ //loads game when all scripts are loaded
 	// the moduls themselves
 	// more full blown sandbox solutions are discussed here:
 	//http://addyosmani.com/writing-modular-js/
-	//app.sound.init();
-	//app.main.sound = app.sound;
-	game.main.sound=game.sound;
+	//game.main.sound=game.sound;
 	game.collision.init();
-	game.main.collision=game.collision;
-	game.main.Emitter=game.Emitter;
+	//game.main.collision=game.collision;
+	//game.main.Emitter=game.Emitter;
 	game.main.init();
 };
 window.onblur = function(){ //game gets paused
