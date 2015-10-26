@@ -32,13 +32,14 @@ game.main = (function(){
 		var collision = undefined;
 		var Emitter=undefined;
 		var gameState= undefined;
+		var sound=undefined;
 		//Arrays
 		var level = [];
 		var player = [];
 		var oldPlayer=[];
 		var bombs=[];
 		//GAME_STATE Object
-		var GAME_STATE = Object.freeze({ 
+		var GAME_STATE = Object.freeze({ //game state
 			BEGIN : 0,
 			DEFAULT : 1,
 			/*EXPLODING : 2,
@@ -47,40 +48,40 @@ game.main = (function(){
 			END : 5
 		});
 		//BOMB Object
-		var BOMB = Object.freeze({
+		var BOMB = Object.freeze({ //constants for bombs
 			RADIUS: 10,
 			EXPLOSION_MAX_RADIUS_START: 80,
 			EXPLOSION_SPEED: 30,
 		});
 		//BOX object
-		var BOX = Object.freeze({
+		var BOX = Object.freeze({ //constants for Boxes
 			HEIGHT: 50,
 			WIDTH: 50,
 		});
 		//PLAYER Object
-		var PLAYER = Object.freeze({
+		var PLAYER = Object.freeze({ //constants for player
 			RADIUS: 20,
 			SPEED: 80,
 		});
 		//BOX_POWERUP state object
-		var BOX_POWERUP = Object.freeze({
+		var BOX_POWERUP = Object.freeze({ //constants for powerups
 			NO: 0,
 			SPEED: 1,
 			BOMB: 2,
 			RADIUS: 3,
 		});
 		//VALUES_POWERUP object
-		var VALUES_POWERUP = Object.freeze({ //each value added to current value in player object
-			SPEED: 40,
+		var VALUES_POWERUP = Object.freeze({ //constants for powerups
+			SPEED: 40, //each value added to current value in player object
 			BOMB: 1,
 			RADIUS: 40,			
 		});
 	//Other Objects
-	function Player(x,y,color,up,right,down,left,bombsLeft,lives){ //Keys only if changeable keys is possible
+	function Player(x,y,color,up,right,down,left,bombsLeft,lives){ //Player Obj
 		this.x=x;
 		this.y=y;
 		this.color=color;
-		this.up=up;
+		this.up=up; //Keys only if changeable keys is possible
 		this.right=right;
 		this.down=down;
 		this.left=left;
@@ -93,13 +94,13 @@ game.main = (function(){
 		return this;
 	};
 	
-	function OldPlayer(x,y){ //Keys only if changeable keys is possible
+	function OldPlayer(x,y){ //OldPlayer Obj
 		this.x=x;
 		this.y=y;
 		return this;
 	};
 	
-	function Bomb(x,y,playerNr,radius){
+	function Bomb(x,y,playerNr,radius){ //Bomb Obj
 		this.x=x;
 		this.y=y;
 		this.playerNr=playerNr;
@@ -112,15 +113,15 @@ game.main = (function(){
 		return this;
 	}
 	
-	function Box(x,y,fixed){ //fixed is boolean
+	function Box(x,y,fixed){ //Box Obj
 		this.x=x;
 		this.y=y;
-		this.fixed=fixed;
+		this.fixed=fixed; //fixed is boolean
 		this.powerUp=BOX_POWERUP.NO;
 		return this;
 	};
 	//methods
-	function init(){ //setup canvas, set canvas into center of screen, setup mouse controls, start animation loop
+	function init(){ //setup canvas, set canvas into center of screen, setup mouse controls, start animation loop, init sound
 		//setup canvas
 		windowHeight=window.innerHeight;
 		windowWidth=window.innerWidth;
@@ -130,12 +131,14 @@ game.main = (function(){
 		canvas.width = CANVAS_WIDTH;
 		canvas.height = CANVAS_HEIGHT;
 		ctx = canvas.getContext('2d');
+		document.querySelector('h1').innerHTML=" "; //delet loading text
 		collision=game.collision; //didn't worked otherwise. Why?
 		Emitter=game.Emitter;
 		// hook up events (mouse)
 		canvas.onmousedown = doMousedown; //do I need mouse? Maybe to start level, navigate menus
 		//setup sound
-		
+		sound=game.sound;
+		sound.init();
 		//setup game state/level
 		gameState = GAME_STATE.START;
 		setupLevel();
@@ -147,9 +150,11 @@ game.main = (function(){
 		var char = String.fromCharCode(e.keyCode);
 		if (char == "m" || char == "M"){
 			setBomb(player[1].x,player[1].y,1,BOMB.RADIUS);
+			createjs.Sound.play(sound.ticking);
 		}
 		if (char == "c" || char == "C"){
 			setBomb(player[0].x,player[0].y,0,BOMB.RADIUS);
+			createjs.Sound.play(sound.ticking);
 		}
 		});
 	};
@@ -159,7 +164,7 @@ game.main = (function(){
 		bombs=[];
 	};
 	
-	function gameLoop(){
+	function gameLoop(){ //main loop for gameplay
 		// 1) PAUSED?
 	 	// if so, bail out of loop
 	 	if(paused){
@@ -198,7 +203,7 @@ game.main = (function(){
 		}
 	};
 	
-	function drawHUD(){
+	function drawHUD(){ //draws HUD every frame
 		switch (gameState){
 			case GAME_STATE.START:
 				ctx.save();
@@ -244,7 +249,7 @@ game.main = (function(){
 		}
 	};
 	
-	function drawLevel(){
+	function drawLevel(){ //draw level every frame
 		//draw boxes
 		for (var i=0; i<=level.length; i++){
 			if(level[i]==undefined){ }
@@ -344,7 +349,7 @@ game.main = (function(){
 		oldPlayer[1]=new OldPlayer(player[1].x,player[1].y);
 	};
 	
-	function movePlayer(dt){
+	function movePlayer(dt){ //moves player on key events
 		//Maybe bomb only on keyup...
 		//changable keys: run through array and check for true.
 		if(myKeys.keydown[myKeys.KEYBOARD.KEY_UP]){player[1].y-=player[1].speed*dt; checkCollision(1);}
@@ -363,7 +368,7 @@ game.main = (function(){
 		oldPlayer[1].y=player[1].y;
 	};
 	
-	function checkCollision(nr){ //
+	function checkCollision(nr){ //checks collision for players
 		for (var i=0; i<level.length; i++){
 			if(collision.rectCircleColliding(player[nr],level[i])){
 				switch(level[i].powerUp){
@@ -392,7 +397,7 @@ game.main = (function(){
 		collision.playerHitBottom(player[nr]);
 	};
 	
-	function checkExplosionsCollisions(nr){ //
+	function checkExplosionsCollisions(nr){ //checks the collisions for the explosions
 		if(bombs[nr].exploding){ //handle explosion and power Ups
 			for (var i=0; i<level.length; i++){
 				if(collision.bombColliding(bombs[nr],level[i])){
@@ -424,27 +429,15 @@ game.main = (function(){
 				player[1].lostLives=true;
 			}
 		}
-		/*else{ //handle collision
-			console.log("collision");
-			if(collision.circlesIntersect(player[0],bombs[nr])){
-				player[0].x=oldPlayer[0].x; //lets player stay where he is. No movement.
-				player[0].y=oldPlayer[0].y;
-				console.log("collision0");
-			}
-			if(collision.circlesIntersect(player[1],bombs[nr])){
-				player[1].x=oldPlayer[1].x; //lets player stay where he is. No movement.
-				player[1].y=oldPlayer[1].y;
-				console.log("collision1");
-			}
-		}*/
 	};
 	
-	function checkBombs(dt){
+	function checkBombs(dt){ //handles bomb behaviour
 		for (var i=0; i<bombs.length; i++){
 			if(bombs[i].exploding==false){ //check if bomb is exploding
 				checkExplosionsCollisions(i);
 				if(bombs[i].time==0){ 			//check if bomb should explode
 					bombs[i].exploding=true;
+					createjs.Sound.play(sound.explosion);
 				}
 			bombs[i].time=bombs[i].time-1; //primitive timer and dt needs to be worked in
 			}
@@ -470,6 +463,7 @@ game.main = (function(){
 						player[1].lives-=1;
 						if(player[1].lives<=0){
 							gameState=GAME_STATE.END;
+							sound.changeBackgroundSound(3);
 						}
 						player[1].lostLives=false;
 					}
@@ -480,7 +474,7 @@ game.main = (function(){
 		}
 	};
 	
-	function setBomb(x,y,playerNr,radius){
+	function setBomb(x,y,playerNr,radius){ //sets bomb in array and inits particle effect
 		if(player[playerNr].bombsLeft>=0){ //check how many bombs left for each player
 			var nr=bombs.length;
 			bombs[nr]= new Bomb(x,y,playerNr,radius);
@@ -489,7 +483,7 @@ game.main = (function(){
 		}
 	};
 	
-	function determinePowerUp(){ //randomize powerup occurnces
+	function determinePowerUp(){ //randomize powerup occurences
 		var firstStep=Math.random();
 		if (firstStep<=.8){
 			return false;
@@ -508,7 +502,7 @@ game.main = (function(){
 		}
 	};
 	
-	function fillText(string, x, y, css, color) {
+	function fillText(string, x, y, css, color) { //helper to write text on canvas
 		ctx.save();
 		// https://developer.mozilla.org/en-US/docs/Web/CSS/font
 		ctx.font = css;
@@ -517,7 +511,7 @@ game.main = (function(){
 		ctx.restore();
 	};
 	
-	function calculateDeltaTime(){
+	function calculateDeltaTime(){ //calculates delta time for smother drawings
 		// what's with (+ new Date) below?
 		// + calls Date.valueOf(), which converts it from an object to a 	
 		// primitive (number of milliseconds since January 1, 1970 local time)
@@ -529,15 +523,17 @@ game.main = (function(){
 		return 1/fps;
 	};
 	
-	function doMousedown(e){ //not that important in this game, but handy in navigating the game menu
+	function doMousedown(e){ //event handler for mousedown. Used in the menu
 		var mouse=getMouse(e);
 		//console.log("mouse click at " + mouse.x + " " + mouse.y);
 		switch (gameState){
 			case GAME_STATE.START:
 				gameState=GAME_STATE.DEFAULT;
+				sound.playBackgroundSound();
 			break;
 			case GAME_STATE.END:
 				gameState=GAME_STATE.START;
+				sound.stopBackgroundSound();
 				reset();
 			break;
 		}
@@ -548,6 +544,7 @@ game.main = (function(){
 		paused=true;
 		//stop the animation loop
 		cancelAnimationFrame(animationID);
+		sound.pauseBackgroundSound();
 		// call update() once so that our paused screen gets drawn
 		gameLoop();
 	};
@@ -560,9 +557,10 @@ game.main = (function(){
 		//this.sound.playBGAudio();
 		//restart the loop
 		gameLoop();
+		sound.resumeBackgroundSound();
 	};
 	
-	function drawPauseScreen(){
+	function drawPauseScreen(){ //draws pause screen
 		ctx.save();
 		ctx.fillStyle = "black";
 		ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -583,5 +581,6 @@ game.main = (function(){
 		CANVAS_WIDTH: CANVAS_WIDTH,
 		collision: collision,
 		Emitter: Emitter,
+		sound: sound
 	};
 }());

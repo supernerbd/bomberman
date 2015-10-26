@@ -9,19 +9,29 @@
 		left: 0px;
 		top: 0px;
 		}
+		body{
+		background-color:black;
+		}
+		h1{
+		position:center;
+		color: white;
+		}
 	</style>
 	<title>Bomberman Clone</title>
 </head>
 <body>
-	<canvas>
+	<h1>Loading...</h1>
+	<canvas width="0" height="0">
 		Get a real browser!
 	</canvas>
+	<script src="https://code.createjs.com/soundjs-0.6.1.min.js"></script>
 	<script src='scripts/utilities.js'></script>
 	<script src='scripts/loader.js'></script>
 	<script src='scripts/keys.js'></script>
+	<script src='scripts/main.js'></script>
 	<script src='scripts/collision.js'></script>
 	<script src='scripts/emitter.js'></script>
-	<script src='scripts/main.js'></script>
+	<script src='scripts/sound.js'></script>
 	<img src="media/Character Boy.png" id="player0" style="display:none"/>
 	<img src="media/Character Cat Girl.png" id="player1" style="display:none"/>
 	<img src="media/Gem Blue.png" id="powerUp0" style="display:none"/>

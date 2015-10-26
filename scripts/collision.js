@@ -14,41 +14,43 @@ var game = game || {};
 				player[nr].y=oldPlayer[nr].y;
 			}*/
 game.collision = (function(){
+	//vars
 	var BOX;
 	var PLAYER;
 	var CANVAS_WIDTH;
 	var CANVAS_HEIGHT;
-	function init(){
+	
+	function init(){ //set values inside this obj
 		BOX=game.main.BOX;
 		PLAYER=game.main.PLAYER;
 		CANVAS_HEIGHT=game.main.CANVAS_HEIGHT;
 		CANVAS_WIDTH=game.main.CANVAS_WIDTH;
 	};
 
-	function playerHitLeft(c){
+	function playerHitLeft(c){ //check: did player hit left wall?
 		if(c.x<=PLAYER.RADIUS){
 			c.x=PLAYER.RADIUS;
 		}
 	};
-	function playerHitRight(c){
+	function playerHitRight(c){ //check: did player hit right wall?
 		if(c.x>=CANVAS_WIDTH-PLAYER.RADIUS){
 			c.x=CANVAS_WIDTH-PLAYER.RADIUS;
 		}
 	};
 	
-	function playerHitTop(c){
+	function playerHitTop(c){ //check: did player hit upper wall?
 		if(c.y<=PLAYER.RADIUS){
 			c.y=PLAYER.RADIUS;
 		}
 	};
 	
-	function playerHitBottom(c){
+	function playerHitBottom(c){ ////check: did player hit bottom wall?
 		if(c.y>=CANVAS_HEIGHT-PLAYER.RADIUS){
 			c.y=CANVAS_HEIGHT-PLAYER.RADIUS;
 		}
 	};
 	
-	function circlesIntersect(c1,c2){
+	function circlesIntersect(c1,c2){ //check: do circles intersect? Used for player against explosion check
 		var dx=c2.x-c1.x;
 		var dy = c2.y-c1.y;
 		var distance= Math.sqrt(dx*dx + dy*dy);
@@ -58,7 +60,7 @@ game.collision = (function(){
 	// return true if the rectangle and circle are colliding
 	// this function is from user marcE from stackoverflow.com: http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle-in-html5-canvas
 	// I altered this code to fit in my needs.
-	function rectCircleColliding(circle,rect){
+	function rectCircleColliding(circle,rect){ //check: do player and rect (box) collide?
 		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
 		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
 
@@ -75,7 +77,7 @@ game.collision = (function(){
 	// return true if the rectangle and circle are colliding
 	// this function is from user marcE from stackoverflow.com: http://stackoverflow.com/questions/21089959/detecting-collision-of-rectangle-with-circle-in-html5-canvas
 	// I altered this code to fit in my needs.
-	function bombColliding(circle,rect){
+	function bombColliding(circle,rect){ //check: do explosions and rect (box) collide?
 		var distX = Math.abs(circle.x - rect.x-BOX.WIDTH/2);
 		var distY = Math.abs(circle.y - rect.y-BOX.HEIGHT/2);
 
