@@ -9,7 +9,7 @@ var game = game || {};
 
 
 window.onload = function(){ //loads game when all scripts are loaded
-	console.log("window.onload called");
+	//console.log("window.onload called");
 	// This is ths "sandbox" where we hook our modules up
 	// so that we donT have any hard-coded dependencies in
 	// the moduls themselves

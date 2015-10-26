@@ -45,6 +45,7 @@ game.main = (function(){
 			BEGIN : 0,
 			DEFAULT : 1,
 			UI: 2,
+			CREDITS: 3,
 			END : 5
 		});
 		//BOMB Object
@@ -202,7 +203,7 @@ game.main = (function(){
 		//debug
 		if (debug){
 			// draw dt in bottom right corner
-			ui.fillText("dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt courier", "black");
+			ui.fillText("dt: " + dt.toFixed(3), CANVAS_WIDTH - 150, CANVAS_HEIGHT - 10, "18pt Oswald", "black");
 		}
 	};
 	
@@ -216,6 +217,12 @@ game.main = (function(){
 			break;
 			case GAME_STATE.END:
 				ui.drawEnd(player);
+			break;
+			case GAME_STATE.UI:
+				ui.drawUI(storage);
+			break;
+			case GAME_STATE.CREDITS:
+				ui.drawCredits();
 			break;
 		}
 	};
@@ -490,13 +497,31 @@ game.main = (function(){
 		//console.log("mouse click at " + mouse.x + " " + mouse.y);
 		switch (gameState){
 			case GAME_STATE.START:
-				gameState=GAME_STATE.DEFAULT;
+				gameState=GAME_STATE.UI;
 				sound.playBackgroundSound();
 			break;
+			case GAME_STATE.UI:
+				if(ui.pointInside(375,100,300,100,mouse)){
+					gameState=GAME_STATE.DEFAULT;
+					sound.changeBackgroundSound(1);
+				}
+				if(ui.pointInside(375,300,300,100,mouse)){
+					gameState=GAME_STATE.START;
+					sound.stopBackgroundSound();
+				}
+				if(ui.pointInside(375,200,300,100,mouse)){
+					gameState=GAME_STATE.CREDITS;
+					sound.stopBackgroundSound();
+				}
+			break;
 			case GAME_STATE.END:
-				gameState=GAME_STATE.START;
+				gameState=GAME_STATE.UI;
 				sound.stopBackgroundSound();
+				sound.playBackgroundSound();
 				reset();
+			break;
+			case GAME_STATE.CREDITS:
+				gameState=GAME_STATE.START;
 			break;
 		}
 	};
@@ -532,7 +557,7 @@ game.main = (function(){
 		ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 		ctx.textAlign="center";
 		ctx.textBaseline="middle";
-		ui.fillText("... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt courier", "white")
+		ui.fillText("... PAUSED ...", CANVAS_WIDTH/2, CANVAS_HEIGHT/2, "40pt Oswald", "white")
 		ctx.restore();
 	};
 	

@@ -30,7 +30,7 @@ game.sound = (function(){ //init sound and set sound vars (return)
 	};
 	
 	function playBackgroundSound(){ //starts background sounds
-		backgroundSound=createjs.Sound.play(background1);
+		backgroundSound=createjs.Sound.play(background2);
 		backgroundSound.loop=-1;
 	};
 	
